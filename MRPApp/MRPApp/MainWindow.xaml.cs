@@ -4,6 +4,10 @@ using System;
 using System.Windows;
 using MRPApp.View.Account;
 using MRPApp.View.Setting;
+using MRPApp.View.Schedule;
+using System.Configuration;
+using System.Linq;
+using MRPApp.View.Process;
 
 namespace MRPApp
 {
@@ -24,8 +28,16 @@ namespace MRPApp
 
         private void MetroWindow_Activated(object sender, EventArgs e)
         {
-            /*if (Commons.LOGINED_USER != null)
-                BtnLoginedId.Content = $"{Commons.LOGINED_USER.UserEmail} ({Commons.LOGINED_USER.UserName})";*/
+            Commons.PLANTCODE = ConfigurationManager.AppSettings.Get("PlantCode");
+            try
+            {
+                var plantName = Logic.DataAccess.GetSettings().Where(c => c.BasicCode.Equals(Commons.PLANTCODE)).FirstOrDefault().CodeName;
+                BtnPlantName.Content = plantName;
+            }
+            catch (Exception ex)
+            {
+                Commons.LOGGER.Error($"예외발생 : {ex}");
+            }
         }
 
         private async void BtnExit_Click(object sender, RoutedEventArgs e)
@@ -39,38 +51,37 @@ namespace MRPApp
             }
         }
 
-        private async void BtnAccount_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                ActiveControl.Content = new MyAccount();
-            }
-            catch (Exception ex)
-            {
-                Commons.LOGGER.Error($"예외발생 BtnAccount_Click : {ex}");
-                await this.ShowMessageAsync("예외", $"예외발생 : {ex}");
-            }
-        }
-
-        private async void BtnUser_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                /*ActiveControl.Content = new UserList();*/
-            }
-            catch (Exception ex)
-            {
-                Commons.LOGGER.Error($"예외발생 BtnUser_Click : {ex}");
-                await this.ShowMessageAsync("예외", $"예외발생 : {ex}");
-            }
-        }
-
-
         private void BtnSetting_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 ActiveControl.Content = new SettingList();
+            }
+            catch (Exception ex)
+            {
+                Commons.LOGGER.Error($"예외발생 BtnSetting_Click : {ex}");
+                this.ShowMessageAsync("예외", $"예외발생 : {ex}");
+            }
+        }
+
+        private void BtnSchedule_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ActiveControl.Content = new ScheduleList();
+            }
+            catch (Exception ex)
+            {
+                Commons.LOGGER.Error($"예외발생 BtnSetting_Click : {ex}");
+                this.ShowMessageAsync("예외", $"예외발생 : {ex}");
+            }
+        }
+
+        private void BtnMonitoring_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ActiveControl.Content = new ProcessView();
             }
             catch (Exception ex)
             {

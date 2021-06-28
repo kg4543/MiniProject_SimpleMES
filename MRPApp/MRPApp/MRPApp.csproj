@@ -182,6 +182,7 @@
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -201,6 +202,48 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Logic\DataAccess.cs" />
+    <Compile Include="Model\MRPModel.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MRPModel.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\MRPModel.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MRPModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\MRPModel.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MRPModel.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Model\Process.cs">
+      <DependentUpon>MRPModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\Process_DEV.cs">
+      <DependentUpon>MRPModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\Schedules.cs">
+      <DependentUpon>MRPModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\Settings.cs">
+      <DependentUpon>MRPModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\sp_helpdiagramdefinition_Result.cs">
+      <DependentUpon>MRPModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\sp_helpdiagrams_Result.cs">
+      <DependentUpon>MRPModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\sysdiagrams.cs">
+      <DependentUpon>MRPModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="View\Process\ProcessView.xaml.cs">
+      <DependentUpon>ProcessView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Schedule\ScheduleList.xaml.cs">
+      <DependentUpon>ScheduleList.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\Setting\SettingList.xaml.cs">
       <DependentUpon>SettingList.xaml</DependentUpon>
     </Compile>
@@ -229,6 +272,14 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="View\Process\ProcessView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="View\Schedule\ScheduleList.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="View\Setting\SettingList.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -268,6 +319,13 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EntityDeploy Include="Model\MRPModel.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>MRPModel.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <None Include="Model\MRPModel.edmx.diagram">
+      <DependentUpon>MRPModel.edmx</DependentUpon>
+    </None>
     <None Include="NanumGothic.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -283,9 +341,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Model\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
@@ -448,6 +504,25 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\DeviceServ.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Model\MRPModel.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>MRPModel.Context.cs</LastGenOutput>
+      <DependentUpon>MRPModel.edmx</DependentUpon>
+    </Content>
+    <Content Include="Model\MRPModel.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>MRPModel.edmx</DependentUpon>
+      <LastGenOutput>MRPModel.cs</LastGenOutput>
+    </Content>
+    <Resource Include="Resources\belt.png" />
+    <Resource Include="Resources\sensor.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\gear.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
