@@ -1,15 +1,10 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Messages;
@@ -80,12 +75,11 @@ namespace DeviceSubApp
                 using (var conn = new SqlConnection(connectinString))
                 {
                     var prcResult = correntData["PRC_MSG"] == "OK" ? 1 : 0;
-                    string strUpQry = $@"UPDATE Process_dev
-                                           SET PrcEndTime = '{ DateTime.Now.ToString("HH:mm:ss") }'
-                                              , PrcResult = '{ prcResult }'
+                    string strUpQry = $@"UPDATE Process
+                                           SET  PrcResult = '{ prcResult }'
                                               , ModDate = '{ DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") }'
                                               , ModID = '{ "SYS" }'
-                                         WHERE PrcIdx = (SELECT Top 1 Prcidx FROM Process_dev
+                                         WHERE PrcIdx = (SELECT Top 1 Prcidx FROM Process
                                                          order by PrcIdx desc)";
 
                     try
@@ -100,11 +94,9 @@ namespace DeviceSubApp
                     catch (Exception ex)
                     {
                         UpdateText($">>>>> DB ERROR!!! : {ex.Message}");
-                        throw;
                     }
                 }
             }
-
             iotData.Clear(); //데이터 모두 삭제
         }
 
@@ -164,6 +156,7 @@ namespace DeviceSubApp
 
         private void UpdateText(string message)
         {
+            //리치텍스트박스 (UI 스레드)
             if (RtbSubscr.InvokeRequired)
             {
                 UpdateTextCallback callback = new UpdateTextCallback(UpdateText);

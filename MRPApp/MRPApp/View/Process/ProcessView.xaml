@@ -4,10 +4,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-    xmlns:local="clr-namespace:MRPApp.View.Account"
+    xmlns:local="clr-namespace:MRPApp.View.Process"
     mc:Ignorable="d" 
     d:DesignHeight="630" d:DesignWidth="1200"
-    Title="Pocess" Loaded="Page_Loaded" Background="White">
+    Title="Pocess" Loaded="Page_Loaded" Background="White" Unloaded="Page_Unloaded">
     <Page.Resources>
         <Style TargetType="Label">
             <!-- {x:Type Label} -->
@@ -94,6 +94,10 @@
                 <RowDefinition Height="50" />
                 <RowDefinition Height="50" />
                 <RowDefinition Height="50" />
+                <RowDefinition Height="50" />
+                <RowDefinition Height="50" />
+                <RowDefinition Height="50" />
+                <RowDefinition Height="50" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="130"/>
@@ -115,6 +119,15 @@
             <Label Name="LblSchAmount" 
                    Grid.Row="2" Grid.Column="1" 
                    Content="100 개" FontSize="20" FontFamily="Nanumgothic"/>
+
+            <Label Grid.Row="3" Grid.Column="0" Content="성공수량" FontSize="20"/>
+            <Label Name="LblPrcOkAmount" Grid.Row="3" Grid.Column="1" FontSize="20" Content="0개"/>
+            <Label Grid.Row="4" Grid.Column="0" Content="불량수량" FontSize="20"/>
+            <Label Name="LblPrcFailAmount" Grid.Row="4" Grid.Column="1" FontSize="20" Content="0개"/>
+            <Label Grid.Row="5" Grid.Column="0" Content="성공률" FontSize="20" Foreground="Blue"/>
+            <Label Name="LblPrcOkRatio" Grid.Row="5" Grid.Column="1" FontSize="20" Content="0%" Foreground="Blue"/>
+            <Label Grid.Row="6" Grid.Column="0" Content="불량률" FontSize="20" Foreground="Red"/>
+            <Label Name="LblPrcFailRatio" Grid.Row="6" Grid.Column="1" FontSize="20" Content="0%" Foreground="Red"/>
         </Grid>
     </Grid>
 </Page>

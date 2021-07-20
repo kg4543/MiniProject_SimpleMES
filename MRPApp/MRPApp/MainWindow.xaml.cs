@@ -2,12 +2,12 @@
 using MahApps.Metro.Controls.Dialogs;
 using System;
 using System.Windows;
-using MRPApp.View.Account;
-using MRPApp.View.Setting;
-using MRPApp.View.Schedule;
 using System.Configuration;
 using System.Linq;
+using MRPApp.View.Setting;
+using MRPApp.View.Schedule;
 using MRPApp.View.Process;
+using MRPApp.View.Report;
 
 namespace MRPApp
 {
@@ -29,6 +29,8 @@ namespace MRPApp
         private void MetroWindow_Activated(object sender, EventArgs e)
         {
             Commons.PLANTCODE = ConfigurationManager.AppSettings.Get("PlantCode");
+            Commons.FACILITYID = ConfigurationManager.AppSettings.Get("FacilityID");
+
             try
             {
                 var plantName = Logic.DataAccess.GetSettings().Where(c => c.BasicCode.Equals(Commons.PLANTCODE)).FirstOrDefault().CodeName;
@@ -82,6 +84,19 @@ namespace MRPApp
             try
             {
                 ActiveControl.Content = new ProcessView();
+            }
+            catch (Exception ex)
+            {
+                Commons.LOGGER.Error($"예외발생 BtnSetting_Click : {ex}");
+                this.ShowMessageAsync("예외", $"예외발생 : {ex}");
+            }
+        }
+
+        private void BtnReport_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ActiveControl.Content = new ReportView();
             }
             catch (Exception ex)
             {
