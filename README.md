@@ -193,7 +193,7 @@ private void Client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArg
                     var prcResult = correntData["PRC_MSG"] == "OK" ? 1 : 0;
                     string strUpQry = $@"UPDATE Process
                                            SET  PrcResult = '{ prcResult }'
-                                              , ModDate = '{ DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") }'
+                                              , ModDate = '{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}'
                                               , ModID = '{ "SYS" }'
                                          WHERE PrcIdx = (SELECT Top 1 Prcidx FROM Process
                                                          order by PrcIdx desc)";
@@ -219,23 +219,286 @@ private void Client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArg
 
 ## Setting
 
-<kbd>[![Set](/Capture/Set.PNG "Set")](https://github.com/kg4543/MiniProject_SimpleMES/tree/main/MRPApp/MRPApp/View/Setting)</kbd> </br>
+<kbd>[![Set](/Capture/Set.PNG "Set")](https://github.com/kg4543/MiniProject_SimpleMES/blob/main/MRPApp/MRPApp/View/Setting/SettingList.xaml.cs)</kbd> </br>
 (Click the Image)
 
-- Entity Framwork를 활용하여 DB Model을 불러옴
 - 기본적인 공장의 정보를 입력
+- Entity Framwork를 활용하여 DB Model을 로드 및 수정
+```
+public class DataAccess
+    {
+        //setting table에서 데이터 가져오기
+        public static List<Settings> GetSettings()
+        {
+            List<Settings> list;
+
+            using(var ctx = new MRPEntities())
+                list = ctx.Settings.ToList(); //Select
+
+            return list;
+        }
+
+        public static int SetSetting(Settings item)
+        {
+            using (var ctx = new MRPEntities())
+            {
+                ctx.Settings.AddOrUpdate(item); //insert or update
+                return ctx.SaveChanges();
+            }
+        }
+     }
+--------------------------------------------------------------------------
+private void LoadGridData()
+        {
+            List<Model.Settings> settings = Logic.DataAccess.GetSettings();
+            this.DataContext = settings;
+        }
+```
+- 유효성검사를 통한 데이터 무결성 유지
+```
+private bool IsValidInputs()
+        {
+            var isValid = true;
+            InitErrorMessage();
+
+            if (string.IsNullOrEmpty(TxtBasicCode.Text))
+            {
+                LblBasicCode.Visibility = Visibility.Visible;
+                LblBasicCode.Text = "코드를 입력하세요";
+                isValid = false;
+            }
+            else if (Logic.DataAccess.GetSettings().Where(s => s.BasicCode.Equals(TxtBasicCode.Text)).Count() > 0)
+            {
+                LblBasicCode.Visibility = Visibility.Visible;
+                LblBasicCode.Text = "중복코드가 존재합니다.";
+                isValid = false;
+            }
+
+            if (string.IsNullOrEmpty(TxtCodeName.Text))
+            {
+                LblCodeName.Visibility = Visibility.Visible;
+                LblCodeName.Text = "코드명를 입력하세요";
+                isValid = false;
+            }
+
+            return isValid;
+        }
+```
 
 ## Schedule
 
-<kbd>[![Plan](/Capture/Plan.PNG "Plan")](https://github.com/kg4543/MiniProject_SimpleMES/tree/main/MRPApp/MRPApp/View/Schedule)</kbd> </br>
+<kbd>[![Plan](/Capture/Plan.PNG "Plan")](https://github.com/kg4543/MiniProject_SimpleMES/blob/main/MRPApp/MRPApp/View/Schedule/ScheduleList.xaml.cs)</kbd> </br>
 (Click the Image)
+
+- Setting에서 설정한 공장의 생산 스케줄을 입력
+- 데이터 유효성 검사 후 데이터 입력 및 수정
+- Grid 공장 데이터와 ComboBox 값을 코드가 아닌 공장의 이름을 받아와 표시 (DisplayMemberPath="CodeName")
+```
+<DataGrid.Columns>
+                    <DataGridTextColumn Binding="{Binding SchIdx}" Header="순번" Width="100" />
+                    <!--<DataGridTextColumn Binding="{Binding PlantCode}" Header="공장" Width="1*" IsReadOnly="True" />-->
+                    <DataGridComboBoxColumn x:Name="CboGrdPlantCode" Header="공장" Width="100"
+                                            DisplayMemberPath="CodeName" SelectedValuePath="BasicCode"
+                                            SelectedValueBinding="{Binding PlantCode}"/>
+                    <DataGridTextColumn Binding="{Binding SchDate, StringFormat=yyyy-MM-dd}" Header="공정일" Width="1*" />
+                    <DataGridTextColumn Binding="{Binding SchAmount}" Header="계획수량" Width="1*" />
+                    <DataGridTextColumn Header="" Width="10" IsReadOnly="True"/>
+                </DataGrid.Columns>
+```
 
 ## Process
 
-<kbd>[![Monitor](/Capture/Monitor.PNG "Monitor")](https://github.com/kg4543/MiniProject_SimpleMES/tree/main/MRPApp/MRPApp/View/Process)</kbd> </br>
+<kbd>[![Monitor](/Capture/Monitor.PNG "Monitor")](https://github.com/kg4543/MiniProject_SimpleMES/blob/main/MRPApp/MRPApp/View/Schedule/ScheduleList.xaml.cs)</kbd> </br>
 (Click the Image)
+
+- 오늘 날짜의 공정계획이 있는지 판단하여 없는 경우 실행 불가
+```
+var today = DateTime.Now.ToString("yyyy-MM-dd");
+                currSchedule = Logic.DataAccess.GetSchedules().Where(s => s.PlantCode.Equals(Commons.PLANTCODE))
+                                    .Where(s => s.SchDate.Equals(DateTime.Parse(today))).FirstOrDefault();
+
+                if (currSchedule == null)
+                {
+                    await Commons.ShowMessageAsync("공정","공정계획이 없습니다. 계획일정을 먼저 입력하세요");
+                    LblProcessDate.Content = string.Empty;
+                    LblSchLoadTime.Content = "None";
+                    LblSchAmount.Content = "None";
+                    BtnStartProcess.IsEnabled = false;
+                    return;
+                }
+```
+- M2Mqtt NuGet Package를 받아 Json 및 mqtt library를 활용, 센싱 데이터를 받아와 결과 표시 
+- 결과 데이터를 Entity Framework로 연동시킨 DB에 저장
+```
+private void InitConnectMqttBroker()
+        {
+            var brokerAddress = IPAddress.Parse("210.119.12.92");
+            client = new MqttClient(brokerAddress);
+            client.MqttMsgPublishReceived += Client_MqttMsgPublishReceived;
+            client.Connect("Monitor");
+            client.Subscribe(new string[] { "factory1/machine1/data/" }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE });
+
+            timer.Enabled = true;
+            timer.Interval = 1000;
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
+        }
+        
+private void Client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
+{
+    var message = Encoding.UTF8.GetString(e.Message);
+    currentData = JsonConvert.DeserializeObject<Dictionary<string, string>>(message);
+
+    if (currentData["PRC_MSG"] == "OK" || currentData["PRC_MSG"] == "FAIL")
+    {
+        sw.Stop();
+        sw.Reset();
+        sw.Start();
+        StartSensorAnimation();
+    }
+}
+```
+- Timer library를 활용하여 공정이 흘러가는 시간 대기 후 결과 표시
+```
+private void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (sw.Elapsed.Seconds >= 2) //2초 대기후 일처리
+            {
+                sw.Stop();
+                sw.Reset();
+                //MessageBox.Show(currentData["PRC_MSG"]);
+                if (currentData["PRC_MSG"] == "OK")
+                {
+                    Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
+                    {
+                        Product.Fill = new SolidColorBrush(Colors.Green);
+                    }));
+                }
+                else if (currentData["PRC_MSG"] == "FAIL")
+                {
+                    Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
+                    {
+                        Product.Fill = new SolidColorBrush(Colors.Red);
+                    }));
+                }
+            }
+        }
+```
+- Media.Animation library를 활용하여 공정이 흘러가는 Animation 표현
+```
+private void StartAnimation()
+        {
+            Product.Fill = new SolidColorBrush(Colors.Gray);
+
+            //Gear Animation (기어회전)
+            DoubleAnimation da = new DoubleAnimation();
+            da.From = 0;
+            da.To = 360;
+            da.Duration = new Duration(TimeSpan.FromSeconds(currSchedule.SchLoadTime / 10)); //일정 계획 로드타임
+            //da.RepeatBehavior = RepeatBehavior.Forever;
+
+            RotateTransform rt = new RotateTransform();
+            Gear1.RenderTransform = rt;
+            Gear1.RenderTransformOrigin = new Point(0.5, 0.5);
+            Gear2.RenderTransform = rt;
+            Gear2.RenderTransformOrigin = new Point(0.5, 0.5);
+
+            rt.BeginAnimation(RotateTransform.AngleProperty, da);
+
+            //Product Animation (제품 이동)
+            DoubleAnimation ma = new DoubleAnimation();
+            ma.From = 140;
+            ma.To = 575;
+            ma.Duration = TimeSpan.FromSeconds(currSchedule.SchLoadTime / 10);
+            //ma.AccelerationRatio = 0.5;
+            //ma.AutoReverse = true;
+
+            Product.BeginAnimation(Canvas.LeftProperty, ma);
+        }
+```
 
 ## Report
 
-<kbd>[![Report](/Capture/Report.PNG "Report")](https://github.com/kg4543/MiniProject_SimpleMES/tree/main/MRPApp/MRPApp/View/Report)</kbd> </br>
+<kbd>[![Report](/Capture/Report.PNG "Report")](https://github.com/kg4543/MiniProject_SimpleMES/blob/main/MRPApp/MRPApp/View/Report/ReportView.xaml.cs)</kbd> </br>
 (Click the Image)
+
+- LiveCharts Nuget Package를 받아 Report를 그래프로 표현
+```
+<live:CartesianChart
+        x:Name="ChtReport"
+        BorderThickness="2"
+        LegendLocation="Top" Margin="10"/>
+        
+private void DisplayChart(List<Model.Report> list)
+        {
+            int[] SchAmount = list.Select(a => (int)a.SchAmount).ToArray();
+            int[] OKAmount = list.Select(a => (int)a.OKAmount).ToArray();
+            int[] FailAmount = list.Select(a => (int)a.FailAmount).ToArray();
+
+            var series1 = new LiveCharts.Wpf.ColumnSeries
+            {
+                Title = "계획 수량",
+                Fill = new SolidColorBrush(Colors.BlueViolet),
+                Values = new LiveCharts.ChartValues<int>(SchAmount)
+            };
+            var series2 = new LiveCharts.Wpf.ColumnSeries
+            {
+                Title = "성공 수량",
+                Fill = new SolidColorBrush(Colors.Blue),
+                Values = new LiveCharts.ChartValues<int>(OKAmount)
+            };
+            var series3 = new LiveCharts.Wpf.ColumnSeries
+            {
+                Title = "실패 수량",
+                Fill = new SolidColorBrush(Colors.Red),
+                Values = new LiveCharts.ChartValues<int>(FailAmount)
+            };
+
+            //chart 할당
+            ChtReport.Series.Clear();
+            ChtReport.Series.Add(series1);
+            ChtReport.Series.Add(series2);
+            ChtReport.Series.Add(series3);
+            ChtReport.AxisX.First().Labels = list.Select(a => a.PrcDate.ToString("yyyy-MM-dd")).ToList();
+        }
+
+```
+- Query문을 통해 Report Data를 받아옴
+```
+ var sqlQuery = $@"SELECT sch.SchIdx, sch.PlantCode, sch.SchAmount, prc.PrcDate,
+		                                    prc.OK_Amount, prc.Fail_Amount
+	                                From Schedules as sch
+                             inner join(
+			                            SELECT smr.SchIdx, smr.PrcDate, sum(PrcOK) as OK_Amount, sum(PrcFail) as Fail_Amount
+			                              From (
+					                             SELECT p.SchIdx, p.PrcDate, 
+							                            CASE p.PrcResult When 1 Then 1 else 0 END AS PrcOK,
+							                            CASE p.PrcResult When 0 Then 1 else 0 END AS PrcFail
+					                               From Process AS p
+					                            ) as smr
+			                                        Group by smr.SchIdx, smr.PrcDate
+			                                    )AS prc
+			                                        ON sch.SchIdx = prc.SchIdx
+			                                        where sch.PlantCode = '{plantCode}'
+			                                          and prc.PrcDate Between '{startDate}' and '{endDate}' ";
+```
+- 시작일이 종료일보다 넘지 않도록 유효성 검사 실시
+```
+private bool IsValidInputs()
+        {
+            var result = true;
+
+            if (DtpStartDate.SelectedDate == null | DtpEndDate.SelectedDate == null)
+            {
+                Commons.ShowMessageAsync("검색", "검색할 일자를 선택하세요");
+                result = false;
+            }
+            if (DtpEndDate.SelectedDate < DtpStartDate.SelectedDate)
+            {
+                Commons.ShowMessageAsync("검색", "시작일자가 종료일자보다 최신일 수 없습니다");
+                result = false;
+            }
+
+            return result;
+        }
+```
