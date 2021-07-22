@@ -12,7 +12,7 @@
 - RGB sensor를 사용하여 초록(양품) / 빨강(불량)을 구분한다.
 - sensor의 정확도를 위해 10이하 2000이상의 데이터는 제외
 
-```C#
+```Python
 def read_value(a2, a3):
     GPIO.output(s2, a2)
     GPIO.output(s3, a3)
@@ -55,7 +55,7 @@ def loop():
 ```
 - mosquito를 활용하여 mqtt방식으로 Json 형태의 데이터를 전달
 
-```C#
+```Python
 dev_id = 'MACHINE01'
 broker_address = '210.119.12.92'
 pub_topic = 'factory1/machine1/data/'
