@@ -295,15 +295,15 @@ private bool IsValidInputs()
 - Grid 공장 데이터와 ComboBox 값을 코드가 아닌 공장의 이름을 받아와 표시 (DisplayMemberPath="CodeName")
 ```
 <DataGrid.Columns>
-                    <DataGridTextColumn Binding="{Binding SchIdx}" Header="순번" Width="100" />
-                    <!--<DataGridTextColumn Binding="{Binding PlantCode}" Header="공장" Width="1*" IsReadOnly="True" />-->
-                    <DataGridComboBoxColumn x:Name="CboGrdPlantCode" Header="공장" Width="100"
-                                            DisplayMemberPath="CodeName" SelectedValuePath="BasicCode"
-                                            SelectedValueBinding="{Binding PlantCode}"/>
-                    <DataGridTextColumn Binding="{Binding SchDate, StringFormat=yyyy-MM-dd}" Header="공정일" Width="1*" />
-                    <DataGridTextColumn Binding="{Binding SchAmount}" Header="계획수량" Width="1*" />
-                    <DataGridTextColumn Header="" Width="10" IsReadOnly="True"/>
-                </DataGrid.Columns>
+    <DataGridTextColumn Binding="{Binding SchIdx}" Header="순번" Width="100" />
+    <!--<DataGridTextColumn Binding="{Binding PlantCode}" Header="공장" Width="1*" IsReadOnly="True" />-->
+    <DataGridComboBoxColumn x:Name="CboGrdPlantCode" Header="공장" Width="100"
+			    DisplayMemberPath="CodeName" SelectedValuePath="BasicCode"
+			    SelectedValueBinding="{Binding PlantCode}"/>
+    <DataGridTextColumn Binding="{Binding SchDate, StringFormat=yyyy-MM-dd}" Header="공정일" Width="1*" />
+    <DataGridTextColumn Binding="{Binding SchAmount}" Header="계획수량" Width="1*" />
+    <DataGridTextColumn Header="" Width="10" IsReadOnly="True"/>
+</DataGrid.Columns>
 ```
 
 ## Process
