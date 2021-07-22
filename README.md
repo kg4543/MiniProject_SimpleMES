@@ -12,7 +12,7 @@
 - RGB sensor를 사용하여 초록(양품) / 빨강(불량)을 구분한다.
 - sensor의 정확도를 위해 10이하 2000이상의 데이터는 제외
 
-```
+```C#
 def read_value(a2, a3):
     GPIO.output(s2, a2)
     GPIO.output(s3, a3)
@@ -55,7 +55,7 @@ def loop():
 ```
 - mosquito를 활용하여 mqtt방식으로 Json 형태의 데이터를 전달
 
-```
+```C#
 dev_id = 'MACHINE01'
 broker_address = '210.119.12.92'
 pub_topic = 'factory1/machine1/data/'
@@ -95,7 +95,7 @@ def send_data(param, red, green, blue):
 
 - Winform의 '리치텍스트박스'를 활용하여 Json형태의 데이터를 받아 Monitoring
 - Json 및 Mqtt library 활용 Client 연결
-```
+```C#
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -145,7 +145,7 @@ private void InitializeAllData()
         }      
 ```
 - Mqtt를 통해 들어온 메세지를 문자열에 표시
-```
+```C#
 private void Client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
         {
             try
@@ -179,7 +179,7 @@ private void Client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArg
         }
 ```
 - mqtt로 받은 데이터를 DB에 저장
-```
+```C#
 //실제 여러 데이터 중 최종 데이터만 DB입력
         private void PrcCorrectDataToDB()
         {
@@ -224,7 +224,7 @@ private void Client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArg
 
 - 기본적인 공장의 정보를 입력
 - Entity Framwork를 활용하여 DB Model을 로드 및 수정
-```
+```C#
 public class DataAccess
     {
         //setting table에서 데이터 가져오기
@@ -255,7 +255,7 @@ private void LoadGridData()
         }
 ```
 - 유효성검사를 통한 데이터 무결성 유지
-```
+```C#
 private bool IsValidInputs()
         {
             var isValid = true;
@@ -293,7 +293,7 @@ private bool IsValidInputs()
 - Setting에서 설정한 공장의 생산 스케줄을 입력
 - 데이터 유효성 검사 후 데이터 입력 및 수정
 - Grid 공장 데이터와 ComboBox 값을 코드가 아닌 공장의 이름을 받아와 표시 (DisplayMemberPath="CodeName")
-```
+```C#
 <DataGrid.Columns>
     <DataGridTextColumn Binding="{Binding SchIdx}" Header="순번" Width="100" />
     <!--<DataGridTextColumn Binding="{Binding PlantCode}" Header="공장" Width="1*" IsReadOnly="True" />-->
@@ -312,7 +312,7 @@ private bool IsValidInputs()
 (Click the Image)
 
 - 오늘 날짜의 공정계획이 있는지 판단하여 없는 경우 실행 불가
-```
+```C#
 var today = DateTime.Now.ToString("yyyy-MM-dd");
                 currSchedule = Logic.DataAccess.GetSchedules().Where(s => s.PlantCode.Equals(Commons.PLANTCODE))
                                     .Where(s => s.SchDate.Equals(DateTime.Parse(today))).FirstOrDefault();
@@ -329,7 +329,7 @@ var today = DateTime.Now.ToString("yyyy-MM-dd");
 ```
 - M2Mqtt NuGet Package를 받아 Json 및 mqtt library를 활용, 센싱 데이터를 받아와 결과 표시 
 - 결과 데이터를 Entity Framework로 연동시킨 DB에 저장
-```
+```C#
 private void InitConnectMqttBroker()
         {
             var brokerAddress = IPAddress.Parse("210.119.12.92");
@@ -359,7 +359,7 @@ private void Client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArg
 }
 ```
 - Timer library를 활용하여 공정이 흘러가는 시간 대기 후 결과 표시
-```
+```C#
 private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             if (sw.Elapsed.Seconds >= 2) //2초 대기후 일처리
@@ -385,7 +385,7 @@ private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         }
 ```
 - Media.Animation library를 활용하여 공정이 흘러가는 Animation 표현
-```
+```C#
 private void StartAnimation()
         {
             Product.Fill = new SolidColorBrush(Colors.Gray);
@@ -423,7 +423,7 @@ private void StartAnimation()
 (Click the Image)
 
 - LiveCharts Nuget Package를 받아 Report를 그래프로 표현
-```
+```C#
 <live:CartesianChart
         x:Name="ChtReport"
         BorderThickness="2"
@@ -464,7 +464,7 @@ private void DisplayChart(List<Model.Report> list)
 
 ```
 - Query문을 통해 Report Data를 받아옴
-```
+```C#
  var sqlQuery = $@"SELECT sch.SchIdx, sch.PlantCode,
 			  sch.SchAmount, prc.PrcDate,
 			  prc.OK_Amount, prc.Fail_Amount
@@ -484,7 +484,7 @@ private void DisplayChart(List<Model.Report> list)
 					  and prc.PrcDate Between '{startDate}' and '{endDate}' ";
 ```
 - 시작일이 종료일보다 넘지 않도록 유효성 검사 실시
-```
+```C#
 private bool IsValidInputs()
         {
             var result = true;
