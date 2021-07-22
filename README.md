@@ -465,22 +465,23 @@ private void DisplayChart(List<Model.Report> list)
 ```
 - Query문을 통해 Report Data를 받아옴
 ```
- var sqlQuery = $@"SELECT sch.SchIdx, sch.PlantCode, sch.SchAmount, prc.PrcDate,
-		                                    prc.OK_Amount, prc.Fail_Amount
-	                                From Schedules as sch
-                             inner join(
-			                            SELECT smr.SchIdx, smr.PrcDate, sum(PrcOK) as OK_Amount, sum(PrcFail) as Fail_Amount
-			                              From (
-					                             SELECT p.SchIdx, p.PrcDate, 
-							                            CASE p.PrcResult When 1 Then 1 else 0 END AS PrcOK,
-							                            CASE p.PrcResult When 0 Then 1 else 0 END AS PrcFail
-					                               From Process AS p
-					                            ) as smr
-			                                        Group by smr.SchIdx, smr.PrcDate
-			                                    )AS prc
-			                                        ON sch.SchIdx = prc.SchIdx
-			                                        where sch.PlantCode = '{plantCode}'
-			                                          and prc.PrcDate Between '{startDate}' and '{endDate}' ";
+ var sqlQuery = $@"SELECT sch.SchIdx, sch.PlantCode,
+			  sch.SchAmount, prc.PrcDate,
+			  prc.OK_Amount, prc.Fail_Amount
+		From Schedules as sch
+     			inner join(
+			    SELECT smr.SchIdx, smr.PrcDate, sum(PrcOK) as OK_Amount, sum(PrcFail) as Fail_Amount
+			      From (
+					     SELECT p.SchIdx, p.PrcDate, 
+							    CASE p.PrcResult When 1 Then 1 else 0 END AS PrcOK,
+							    CASE p.PrcResult When 0 Then 1 else 0 END AS PrcFail
+					       From Process AS p
+					    ) as smr
+					Group by smr.SchIdx, smr.PrcDate
+				    )AS prc
+					ON sch.SchIdx = prc.SchIdx
+					where sch.PlantCode = '{plantCode}'
+					  and prc.PrcDate Between '{startDate}' and '{endDate}' ";
 ```
 - 시작일이 종료일보다 넘지 않도록 유효성 검사 실시
 ```
